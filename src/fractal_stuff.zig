@@ -1,14 +1,35 @@
 const std = @import("std");
-const complex = std.math.complex;
-pub fn is_in_set(c:complex.Complex(f32),iters:i32,escape_amount:i32) u8 {
-    var i:u8 = 0;
-    var z = complex.Complex(f32).init(0.0,0.0);
-    while (i < iters) { 
-        z = complex.pow(complex.Complex(f32),z,complex.Complex(f32).init(2,0)).add(c);
-        if(std.math.pow(f32,z.magnitude(),2.0) > @as(f32, @floatFromInt(escape_amount))){
-            return i;
+const SDL = @cImport(@cInclude("SDL.h"));
+
+pub const RGBA = struct{
+    red: u8,
+    green : u8,
+    blue: u8,
+    alpha: u8
+};
+const window_size_x = 1920;
+const window_size_y = 1080;
+pub var event:SDL.SDL_Event = undefined;
+pub var window: ?*SDL.SDL_Window = undefined;
+pub var renderer: ?*SDL.SDL_Renderer = undefined;
+pub var mousePos:SDL.SDL_Point = 0;
+pub var realMousePos:SDL.SDL_Point = 0;
+
+pub fn initFractalWindow(comptime getColors:fn(x:i64,y:i64) RGBA) !void {
+    if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0) @panic("SDL Not initialized!\n");
+    _ = SDL.SDL_PollEvent(&event);
+    _ = SDL.SDL_CreateWindowAndRenderer(window_size_x, window_size_y, 0, &window, &renderer);
+    //event.type != SDL.SDL_QUIT
+    while(true){
+        std.debug.print("SDL Event = {any} \n", .{event.type});
+        for(0..window_size_x) |x|{
+            for(0..window_size_y) |y| {
+                const colors = getColors(@intCast(x),@intCast(y));
+                _ = SDL.SDL_SetRenderDrawColor(renderer,colors.red, colors.green, colors.blue, colors.alpha);
+                _ = SDL.SDL_RenderDrawPoint(renderer, @intCast(x), @intCast(y));
+            }
         }
-        i += 1;
+        SDL.SDL_RenderPresent(renderer);
+        _ = SDL.SDL_PollEvent(&event);
     }
-    return 0;
 }
