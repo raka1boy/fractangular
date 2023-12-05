@@ -18,8 +18,8 @@ pub fn initFractalWindow(comptime getColors:fn(x:i64,y:i64) RGBA,window_size_x:i
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0) @panic("SDL Not initialized!\n");
     _ = SDL.SDL_PollEvent(&event);
     _ = SDL.SDL_CreateWindowAndRenderer(@intCast(window_size_x), @intCast(window_size_y), 0, &window, &renderer);
-    //event.type != SDL.SDL_QUIT
-    while(true){
+    //
+    while(event.type != SDL.SDL_QUIT){
         std.debug.print("SDL Event = {any} \n", .{event.type});
         for(0..@intCast(window_size_x)) |x|{
             for(0..@intCast(window_size_y)) |y| {
@@ -31,4 +31,7 @@ pub fn initFractalWindow(comptime getColors:fn(x:i64,y:i64) RGBA,window_size_x:i
         SDL.SDL_RenderPresent(renderer);
         _ = SDL.SDL_PollEvent(&event);
     }
+
+    SDL.SDL_DestroyWindow(window);
+    SDL.SDL_DestroyRenderer(renderer);
 }
